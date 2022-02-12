@@ -6,7 +6,7 @@
 <script>
     import * as satellite from 'satellite.js';
 	import { onMount } from 'svelte';
-    import { Table, Styles, Container, Row, Col, Navbar, NavbarBrand } from 'sveltestrap';
+    import { Table, Styles, Container, Row, Col, Navbar, NavbarBrand, Alert } from 'sveltestrap';
 
     let data = {
         timestamp : 0,
@@ -168,6 +168,10 @@
     <NavbarBrand>🛰️ What's Up?</NavbarBrand>
 </Navbar>
 
+<Alert color="warning">
+This currently uses a fixed location of Kings Park, NY. The location will be changeable soon.
+</Alert>
+
 <Container>
     <Table hover class="small table-sm">
         <thead>
@@ -183,7 +187,7 @@
 
             {#each transmitters as t}
             <tr>
-                <td>{ (t.frequency / 1e6).toFixed(3) }<span class="d-none d-sm-inline"> MHz</span></td>
+                <td>{ (t.frequency / 1e6).toFixed(3) }<span class="d-none d-md-inline">&nbsp; MHz</span></td>
                 <td>{ t.azimuth.toFixed(1) }</td>
                 <td>{ t.elevation.toFixed(1) }&nbsp;{#if t.rangeRate <= 0}▲{:else}▼{/if}</td>
                 <td class="left">{ t.name } • { t.description }</td>

@@ -6,6 +6,7 @@
 <script>
     import * as satellite from 'satellite.js';
 	import { onMount } from 'svelte';
+    import { Table, Styles, Container, Row, Col, Navbar, NavbarBrand } from 'sveltestrap';
 
     let data = {
         timestamp : 0,
@@ -33,6 +34,9 @@
 
     // How long it took to calculate everything.
     let timeToCalculateMs = 0.0;
+
+    // How many total transmitters are there?
+    let totalTransmitters = 0;
 
     /**
      * Returns the range rate between the user and the satellite.
@@ -84,7 +88,6 @@
 
         for (let t of sat.transmitters) {
 
-
             let frequency = t.frequency - t.frequency * ( rr / 299792.4580);
 
             transmitters.push({
@@ -126,52 +129,89 @@
     }
 
 
-
     onMount(async () => {
 
         let response = await fetch("/data.json");
         data = await response.json();
 
+        totalTransmitters = 0;
+
         // Convert the TLEs into sarecs.
         for (let i of data.satellites) {
             i.satrec = satellite.twoline2satrec(i.tle1, i.tle2);
+            totalTransmitters += i.transmitters.length;
         };
 
         update();
 
-        setInterval(update, 100);
+        setInterval(update, 1000);
 
     });
 
 </script>
 
-<table>
-    <tr>
-        <th>Frequency</th>
-        <th>Azimuth</th>
-        <th>Elevation</th>
-        <th>Satellite</th>
-        <th>Transmitter</th>
-    </tr>
-
-    {#each transmitters as t}
-    <tr>
-        <td>{ (t.frequency / 1e6).toFixed(3) } KHz</td>
-        <td>{ t.azimuth.toFixed(1) }</td>
-        <td>{ t.elevation.toFixed(1) } {#if t.rangeRate <= 0}▲{:else}▼{/if}</td>
-        <td>{ t.name }</td>
-        <td>{ t.description }</td>
-    </tr>
-    {/each}
-
-</table>
-
-<p>{ now } - {timeToCalculateMs.toFixed(2)} ms</p>
-
 <style>
-table {
+.right {
     text-align: right;
 }
 
+.left {
+    text-align: left;
+}
 
 </style>
+
+
+<Styles/>
+
+<Navbar color="light" light>
+    <NavbarBrand>🛰️ What's Up?</NavbarBrand>
+</Navbar>
+
+<Container>
+    <Table hover class="small table-sm">
+        <thead>
+        <tr class="right">
+            <th><span class="d-none d-md-inline">Frequency</span><span class="d-md-none">MHz</span></th>
+            <th>Az<span class="d-none d-md-inline">imuth</span></th>
+            <th>El<span class="d-none d-md-inline">evation</span></th>
+            <th class="left">Satellite • Transmitter</th>
+        </tr>
+        </thead>
+
+        <tbody class="right">
+
+            {#each transmitters as t}
+            <tr>
+                <td>{ (t.frequency / 1e6).toFixed(3) }<span class="d-none d-sm-inline"> MHz</span></td>
+                <td>{ t.azimuth.toFixed(1) }</td>
+                <td>{ t.elevation.toFixed(1) }&nbsp;{#if t.rangeRate <= 0}▲{:else}▼{/if}</td>
+                <td class="left">{ t.name } • { t.description }</td>
+            </tr>
+            {/each}
+
+        </tbody>
+
+    </Table>
+
+
+    <Row class="small">
+
+    <Col md="6">
+        { now } - {timeToCalculateMs.toFixed(2)} ms<br>
+        { data.satellites.length } satellites with { totalTransmitters } transmitters.
+    </Col>
+
+    <Col md="6" class="d-none d-md-block" style="text-align: right">
+        Orbital elements courtesy of <a href="https://celestrak.com/">Celestrak.com</a><br>
+        Transmitter list courtesy of <a href="https://satnogs.org/">SATNOGS</a>
+    </Col>
+
+    <Col md="6" class="d-md-none" style="text-align: left">
+        Orbital elements courtesy of <a href="https://celestrak.com/">Celestrak.com</a><br>
+        Transmitter list courtesy of <a href="https://satnogs.org/">SATNOGS</a>
+    </Col>
+
+    </Row>
+
+</Container>

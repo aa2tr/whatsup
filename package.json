@@ -14,6 +14,7 @@
   },
   "type": "module",
   "dependencies": {
-    "satellite.js": "^4.1.3"
+    "satellite.js": "^4.1.3",
+    "sveltestrap": "^5.8.4"
   }
 }

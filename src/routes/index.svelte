@@ -131,7 +131,7 @@
 
     onMount(async () => {
 
-        let response = await fetch("/data.json");
+        let response = await fetch("./data.json");
         data = await response.json();
 
         totalTransmitters = 0;

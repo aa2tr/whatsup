@@ -2,6 +2,8 @@
 
 import json
 import time
+import requests
+import pathlib
 
 class Transmitter:
 
@@ -21,7 +23,7 @@ class Transmitter:
 class Satellite:
 
     def __init__(self, name, tle1, tle2, norad):
-        self.name = name
+        self.name = name.strip()
         self.tle1 = tle1
         self.tle2 = tle2
         self.norad = norad
@@ -89,25 +91,24 @@ def process(transmitters, active):
         "satellites": [ s.json() for s in satellites.values() if s.transmitters ]
     }
 
-    print(json.dumps(json_data, indent=2))
-
-
-
-
-
-
-
-
-
-
-
+    return json.dumps(json_data, indent=2)
 
 
 if __name__ == "__main__":
-    with open("transmitters.json", "r") as f:
-        transmitters = json.load(f)
 
-    with open("active.txt") as f:
-        active = f.read()
 
-    process(transmitters, active)
+
+    transmitters = requests.get("https://db.satnogs.org/api/transmitters/?format=json").json()
+    active = requests.get("https://celestrak.com/NORAD/elements/gp.php?GROUP=active&FORMAT=tle").content.decode("utf-8")
+
+    data = process(transmitters, active)
+
+    base = pathlib.Path(__file__).parent
+
+    if (base / "static").exists():
+        with open(base / "static" / "data.json", "w") as f:
+            f.write(data)
+
+    if (base / "root").exists():
+        with open(base / "root" / "data.json", "w") as f:
+            f.write(data)

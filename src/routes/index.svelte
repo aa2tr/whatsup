@@ -6,7 +6,7 @@
 <script>
     import * as satellite from 'satellite.js';
 	import { onMount } from 'svelte';
-    import { Table, Styles, Container, Row, Col, Navbar, NavbarBrand, Alert } from 'sveltestrap';
+    import { Table, Styles, Container, Row, Col, Navbar, NavbarBrand, Nav, NavItem, NavLink, Alert } from 'sveltestrap';
     import { Modal, ModalBody, ModalHeader, ModalFooter } from 'sveltestrap';
     import { FormGroup, Label, Input, FormText, Button } from 'sveltestrap';
 
@@ -24,7 +24,7 @@
         maidenhead : 'FN30iv',
 
         // Has the position ever been changed?
-        changed : false,
+        changed : true,
 
         // Should the position dialog be shown?
         show : false
@@ -61,7 +61,7 @@
 
         updatePosition();
 
-        if (! ignoreMaidenhead) {
+        if (ignoreMaidenhead !== true) {
             updateMaidenhead();
         }
     }
@@ -263,7 +263,7 @@
 
 {#if ! position.changed}
 <Alert color="warning">
-Using the default location of Kings Park, NY. <a href="" on:click|preventDefault={e => position.show = true}>Click here to change it.</a>
+Using the default location of Kings Park, NY. <a href="#" on:click|preventDefault={e => position.show = true}>Click here to change it.</a>
 </Alert>
 {/if}
 
@@ -307,7 +307,7 @@ Using the default location of Kings Park, NY. <a href="" on:click|preventDefault
         Displaying { strftime("%Y-%m-%d %H:%M:%S", now) }, in {timeToCalculateMs} ms.<br>
         Data from { strftime("%Y-%m-%d %H:%M:%S", new Date(data.timestamp)) }, { data.satellites.length } sats with { totalTransmitters } transmitters.<br>
         Latitude: { (position.latitude || 0).toFixed(5)}, Longitude: { (position.longitude || 0).toFixed(5) }
-        (<a href="" on:click|preventDefault={e => position.show = true}>Change</a>)
+        (<a href="#" on:click|preventDefault={e => position.show = true}>Change</a>)
         <br>
     </Col>
 

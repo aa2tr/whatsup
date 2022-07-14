@@ -7,6 +7,9 @@
     import * as satellite from 'satellite.js';
 	import { onMount } from 'svelte';
     import { Table, Styles, Container, Row, Col, Navbar, NavbarBrand, Alert } from 'sveltestrap';
+    import { Modal, ModalBody, ModalHeader, ModalFooter } from 'sveltestrap';
+    import { FormGroup, Label, Input, FormText, Button } from 'sveltestrap';
+
     import strftime from 'strftime';
 
     let data = {
@@ -14,13 +17,41 @@
         satellites : [ ],
     };
 
+    let position = {
+        latitude : 40.88855,
+        longitude : -74.94444,
+
+        // Has the position ever been changed?
+        changed : false,
+
+        // Should the position dialog be shown?
+        show : false
+    };
 
     // The location of the observer, as latitude and longitude.
-    let observerGeo = {
-        latitude: satellite.degreesToRadians(40.88855),
-        longitude: satellite.degreesToRadians(-73.24355),
-        height: 0.030,
-    };
+    let observerGeo;
+
+    function updatePosition() {
+        observerGeo = {
+            latitude: satellite.degreesToRadians(position.latitude || 0),
+            longitude: satellite.degreesToRadians(position.longitude || 0),
+            height: 0.030, // km
+        };
+    }
+
+    updatePosition();
+
+    function changePosition() {
+        position.changed = true;
+
+        if (position.latitude && position.longitude) {
+            localStorage.latitude = position.latitude;
+            localStorage.longitude = position.longitude;
+            localStorage.changed = position.changed;
+        }
+
+        updatePosition();
+    }
 
     // The same, but in ecf.
     let observerEcf;
@@ -132,6 +163,12 @@
 
     onMount(async () => {
 
+        position.latitude = +(localStorage.latitude || 40.88855);
+        position.longitude = +(localStorage.longitude || -74.94444);
+        position.changed = localStorage.changed || false;
+
+        updatePosition();
+
         let response = await fetch("./data.json");
         data = await response.json();
 
@@ -146,6 +183,7 @@
                 t.unique = totalTransmitters;
             }
         };
+
 
         update();
 
@@ -193,9 +231,11 @@
     <NavbarBrand>🛰️ What's Up?</NavbarBrand>
 </Navbar>
 
+{#if ! position.changed}
 <Alert color="warning">
-This currently uses a fixed location of Kings Park, NY. The location will be changeable soon.
+Using the default location of Kings Park, NY. <a href="" on:click|preventDefault={e => position.show = true}>Click here to change it.</a>
 </Alert>
+{/if}
 
 <Container>
     <Table hover class="small table-sm">
@@ -236,19 +276,49 @@ This currently uses a fixed location of Kings Park, NY. The location will be cha
     <Col md="6">
         Displaying { strftime("%Y-%m-%d %H:%M:%S", now) }, in {timeToCalculateMs} ms.<br>
         Data from { strftime("%Y-%m-%d %H:%M:%S", new Date(data.timestamp)) }, { data.satellites.length } sats with { totalTransmitters } transmitters.<br>
-        <a href="https://github.com/kc2feb/whatsup">github.com/kc2feb/whatsup</a>
+        Latitude: { (position.latitude || 0).toFixed(5)}, Longitude: { (position.longitude || 0).toFixed(5) }
+        (<a href="" on:click|preventDefault={e => position.show = true}>Change</a>)
+        <br>
     </Col>
 
     <Col md="6" class="d-none d-md-block" style="text-align: right">
         Orbital elements courtesy of <a href="https://celestrak.com/">Celestrak.com</a>.<br>
-        Transmitter list courtesy of <a href="https://satnogs.org/">SATNOGS</a>.
+        Transmitter list courtesy of <a href="https://satnogs.org/">SATNOGS</a>.<br>
+        <a href="https://github.com/kc2feb/whatsup">github.com/kc2feb/whatsup</a>
     </Col>
 
     <Col md="6" class="d-md-none" style="text-align: left">
         Orbital elements courtesy of <a href="https://celestrak.com/">Celestrak.com</a>.<br>
-        Transmitter list courtesy of <a href="https://satnogs.org/">SATNOGS</a>.
+        Transmitter list courtesy of <a href="https://satnogs.org/">SATNOGS</a>.<br>
+        <a href="https://github.com/kc2feb/whatsup">github.com/kc2feb/whatsup</a>
     </Col>
 
     </Row>
 
 </Container>
+
+<Modal isOpen={position.show}>
+    <ModalHeader>
+        Change Position
+    </ModalHeader>
+
+    <ModalBody>
+        <FormGroup>
+            <Label for="latitude">Latitude</Label>
+            <Input required type="number" name="latitude" id="latitude" bind:value={position.latitude} min="-90" max="90" step=".00001" on:change={changePosition} />
+            <FormText>Negative numbers are in the southern hemisphere.</FormText>
+        </FormGroup>
+
+        <FormGroup>
+            <Label for="longitude">Longitude</Label>
+            <Input required type="number" name="longitude" id="longitude" bind:value={position.longitude} min="-180" max="180" step=".00001" on:change={changePosition} />
+            <FormText>Negative numbers are in the western hemisphere.</FormText>
+        </FormGroup>
+    </ModalBody>
+
+    <ModalFooter>
+        <Button color="primary" on:click={ e => position.show = false }>Close</Button>
+    </ModalFooter>
+
+
+</Modal>

@@ -11,6 +11,7 @@
     import { FormGroup, Label, Input, FormText, Button } from 'sveltestrap';
 
     import strftime from 'strftime';
+    import HamGridSquare from './HamGridSquare.js';
 
     let data = {
         timestamp : 0,
@@ -20,6 +21,7 @@
     let position = {
         latitude : 40.88855,
         longitude : -74.94444,
+        maidenhead : 'FN30iv',
 
         // Has the position ever been changed?
         changed : false,
@@ -39,9 +41,16 @@
         };
     }
 
+    function updateMaidenhead() {
+        try {
+            position.maidenhead = HamGridSquare.fromLatLon(position.latitude || 0, position.longitude || 0);
+        } catch (e) {
+        }
+    }
+
     updatePosition();
 
-    function changePosition() {
+    function changePosition(ignoreMaidenhead) {
         position.changed = true;
 
         if (position.latitude && position.longitude) {
@@ -51,7 +60,27 @@
         }
 
         updatePosition();
+
+        if (! ignoreMaidenhead) {
+            updateMaidenhead();
+        }
     }
+
+    function changeMaidenhead() {
+        let latlon;
+
+        try {
+            latlon = HamGridSquare.toLatLon(position.maidenhead);
+        } catch (e) {
+            return;
+        }
+
+        position.latitude = +(latlon[0].toFixed(5));
+        position.longitude = +(latlon[1].toFixed(5));
+
+        changePosition(true);
+    }
+
 
     // The same, but in ecf.
     let observerEcf;
@@ -168,6 +197,7 @@
         position.changed = localStorage.changed || false;
 
         updatePosition();
+        updateMaidenhead();
 
         let response = await fetch("./data.json");
         data = await response.json();
@@ -305,15 +335,23 @@ Using the default location of Kings Park, NY. <a href="" on:click|preventDefault
     <ModalBody>
         <FormGroup>
             <Label for="latitude">Latitude</Label>
-            <Input required type="number" name="latitude" id="latitude" bind:value={position.latitude} min="-90" max="90" step=".00001" on:change={changePosition} />
+            <Input type="number" name="latitude" id="latitude" bind:value={position.latitude} min="-90" max="90" step=".00001" on:change={changePosition} />
             <FormText>Negative numbers are in the southern hemisphere.</FormText>
         </FormGroup>
 
         <FormGroup>
             <Label for="longitude">Longitude</Label>
-            <Input required type="number" name="longitude" id="longitude" bind:value={position.longitude} min="-180" max="180" step=".00001" on:change={changePosition} />
+            <Input type="number" name="longitude" id="longitude" bind:value={position.longitude} min="-180" max="180" step=".00001" on:change={changePosition} />
             <FormText>Negative numbers are in the western hemisphere.</FormText>
         </FormGroup>
+
+
+        <FormGroup>
+            <Label for="maidenhead">Maidenhead Locator</Label>
+            <Input type="text" name="maidenhead" id="maidenhead" bind:value={position.maidenhead} on:change={changeMaidenhead} />
+            <FormText>A maidenhead grid square. <a href="https://www.levinecentral.com/ham/grid_square.php">More info.</a></FormText>
+        </FormGroup>
+
     </ModalBody>
 
     <ModalFooter>

@@ -160,6 +160,7 @@
                 description: t.description,
                 mode: t.mode,
                 unique: t.unique,
+                norad: sat.norad,
 
                 sortKey: [ frequency, sat.name, t.description ],
 
@@ -281,6 +282,7 @@ Using the default location of Kings Park, NY. <a href="#" on:click|preventDefaul
             <th><span class="d-none d-md-inline">Frequency</span><span class="d-md-none">MHz</span></th>
             <th>Az<span class="d-none d-md-inline">imuth</span></th>
             <th>El<span class="d-none d-md-inline">evation</span></th>
+            <th>Norad</th>
             <th class="left padded-col">Satellite • Transmitter</th>
         </tr>
         </thead>
@@ -292,6 +294,7 @@ Using the default location of Kings Park, NY. <a href="#" on:click|preventDefaul
                 <td>{ (t.frequency / 1e6).toFixed(3) }<span class="d-none d-md-inline">&nbsp; MHz</span></td>
                 <td>{ t.azimuth.toFixed(1) }</td>
                 <td>{ t.elevation.toFixed(1) }&nbsp;{#if t.rangeRate <= 0}▲{:else}▼{/if}</td>
+                <td>{ t.norad }</td>
                 <td class="left padded-col" >{ t.name } • { t.description }</td>
             </tr>
             {/each}

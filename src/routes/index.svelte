@@ -323,7 +323,7 @@ Using the default location of Kings Park, NY. <a href="#" on:click|preventDefaul
     <Col md="6" class="d-md-none" style="text-align: left">
         Orbital elements courtesy of <a href="https://celestrak.com/">Celestrak.com</a>.<br>
         Transmitter list courtesy of <a href="https://satnogs.org/">SATNOGS</a>.<br>
-        <a href="https://github.com/kc2feb/whatsup">github.com/kc2feb/whatsup</a>
+        <a href="https://github.com/kc2feb/whatsup">github.com/aa2tr/whatsup</a>
     </Col>
 
     </Row>
